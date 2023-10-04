@@ -21,39 +21,41 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
   <script>
-    function gerarPDF() {
-      // Obter os dados inseridos pelo usuário
-      var nome = document.getElementById("nome").value;
-      var telefone = document.getElementById("telefone").value;
-      var valor = document.getElementById("valor").value;
+   function gerarPDF() {
+  // Obter os dados inseridos pelo usuário
+  var nome = document.getElementById("nome").value;
+  var telefone = document.getElementById("telefone").value;
+  var valor = document.getElementById("valor").value;
 
-      // Carregar o modelo DOCX
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", "seu_modelo.docx", true);
-      xhr.responseType = "arraybuffer";
+  // Carregar o modelo DOCX
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "seu_modelo.docx", true);
+  xhr.responseType = "arraybuffer";
 
-      xhr.onload = function () {
-        var templateData = new Uint8Array(xhr.response);
+  xhr.onload = function () {
+    var templateData = new Uint8Array(xhr.response);
 
-        // Preencher o modelo DOCX com os dados
-        var zip = new JSZip(templateData);
-        var doc = new Docxtemplater().loadZip(zip);
-        doc.setData({
-          nome: nome,
-          telefone: telefone,
-          valor: valor
-        });
-        doc.render();
+    // Criar um objeto Zip usando a nova sintaxe
+    var zip = new JSZip();
+    zip.loadAsync(templateData).then(function (doc) {
+      // Preencher o modelo DOCX com os dados
+      doc.setData({
+        nome: nome,
+        telefone: telefone,
+        valor: valor
+      });
+      doc.render();
 
-        // Converter o documento DOCX preenchido em PDF
-        var pdf = doc.getZip().generate({ type: "blob" });
-
+      // Converter o documento DOCX preenchido em PDF
+      doc.getZip().generateAsync({ type: "blob" }).then(function (pdf) {
         // Exibir o PDF ou fazer o download
         pdfMake.createPdf({ content: [{ image: pdf }]}).download("documento.pdf");
-      };
+      });
+    });
+  };
 
-      xhr.send();
-    }
+  xhr.send();
+}
   </script>
 </body>
 </html>
