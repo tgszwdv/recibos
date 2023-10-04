@@ -18,10 +18,11 @@
     <button type="button" onclick="gerarPDF()">Gerar PDF</button>
   </form>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.25.1/docxtemplater.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.0.0/pizzip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip-utils/3.0.0/pizzip-utils.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <!-- Inclua as bibliotecas localmente -->
+  <script src="caminho-para/docxtemplater.js"></script>
+  <script src="caminho-para/pdfmake.min.js"></script>
+  <script src="caminho-para/vfs_fonts.js"></script>
+
   <script>
     function gerarPDF() {
       // Obter os dados inseridos pelo usuário
@@ -37,9 +38,8 @@
       xhr.onload = function () {
         var templateData = new Uint8Array(xhr.response);
 
-        // Carregar o modelo DOCX usando PizZip
-        var zip = new PizZip(templateData);
-        var doc = new window.docxtemplater().loadZip(zip);
+        // Criar um objeto do docxtemplater
+        var doc = new window.docxtemplater().loadZip(new JSZip(templateData));
 
         // Definir os dados para o modelo DOCX
         doc.setData({
@@ -49,14 +49,21 @@
         });
 
         // Renderizar o modelo DOCX com os dados
-        doc.render();
+        try {
+          doc.render();
+        } catch (error) {
+          console.log(error);
+          return;
+        }
 
         // Obter o conteúdo do documento DOCX renderizado
         var docxBuffer = doc.getZip().generate({ type: "blob" });
 
         // Converter o documento DOCX preenchido em PDF
-        var pdfData = new Blob([docxBuffer], { type: "application/pdf" });
-        saveAs(pdfData, "documento.pdf");
+        var pdfBlob = pdfMake.createPdf({ content: [{ image: URL.createObjectURL(docxBuffer) }]}).blob();
+
+        // Fazer o download do PDF
+        saveAs(pdfBlob, "documento.pdf");
       };
 
       xhr.send();
