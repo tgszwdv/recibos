@@ -36,7 +36,8 @@
         var templateData = new Uint8Array(xhr.response);
 
         // Criar um objeto do docxtemplater
-        var doc = new Docxtemplater();
+        var doc = new window.Docxtemplater(); // Use "window.Docxtemplater" para evitar o erro de "Docxtemplater is not defined"
+
         doc.loadZip(templateData);
 
         // Definir os dados para o modelo DOCX
