@@ -19,7 +19,9 @@
   </form>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.25.1/docxtemplater.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.0.0/pizzip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip-utils/3.0.0/pizzip-utils.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script>
     function gerarPDF() {
       // Obter os dados inseridos pelo usuário
@@ -35,10 +37,9 @@
       xhr.onload = function () {
         var templateData = new Uint8Array(xhr.response);
 
-        // Criar um objeto do docxtemplater
-        var doc = new window.Docxtemplater(); // Use "window.Docxtemplater" para evitar o erro de "Docxtemplater is not defined"
-
-        doc.loadZip(templateData);
+        // Carregar o modelo DOCX usando PizZip
+        var zip = new PizZip(templateData);
+        var doc = new window.docxtemplater().loadZip(zip);
 
         // Definir os dados para o modelo DOCX
         doc.setData({
@@ -48,18 +49,14 @@
         });
 
         // Renderizar o modelo DOCX com os dados
-        try {
-          doc.render();
-        } catch (error) {
-          console.log(error);
-          return;
-        }
+        doc.render();
 
         // Obter o conteúdo do documento DOCX renderizado
         var docxBuffer = doc.getZip().generate({ type: "blob" });
 
         // Converter o documento DOCX preenchido em PDF
-        pdfMake.createPdf({ content: [{ image: URL.createObjectURL(docxBuffer) }]}).download("documento.pdf");
+        var pdfData = new Blob([docxBuffer], { type: "application/pdf" });
+        saveAs(pdfData, "documento.pdf");
       };
 
       xhr.send();
